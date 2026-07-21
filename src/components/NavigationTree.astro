@@ -1,0 +1,69 @@
+---
+interface NavSubtopic { id: string; title: string; slug: string }
+interface NavTopic { id: string; title: string; slug: string; subtopics: NavSubtopic[] }
+interface NavCategory { id: string; title: string; slug: string; topics: NavTopic[] }
+
+interface Props {
+  categories: NavCategory[];
+  currentCategoryId?: string;
+  currentTopicId?: string;
+  currentSubtopicId?: string;
+}
+
+const { categories, currentCategoryId, currentTopicId, currentSubtopicId } = Astro.props;
+---
+
+<nav class="article-navigation" aria-label="Article categories">
+  {categories.map((category) => {
+    const categoryOpen = category.id === currentCategoryId;
+    return (
+      <div class:list={["nav-category", categoryOpen && "is-open"]} data-nav-group>
+        <div class:list={["nav-row", "nav-row--category", categoryOpen && !currentTopicId && "is-active"]}>
+          <button type="button" class="nav-chevron" aria-label={`Toggle ${category.title}`} aria-expanded={categoryOpen ? "true" : "false"}>
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3.5 4.5 4.5L6 12.5" /></svg>
+          </button>
+          <a href={`/${category.slug}/`}>{category.title}</a>
+        </div>
+        <div class="nav-children" hidden={!categoryOpen}>
+          {category.topics.map((topic) => {
+            const topicOpen = topic.id === currentTopicId;
+            return (
+              <div class:list={["nav-topic", topicOpen && "is-open"]} data-nav-group>
+                <div class:list={["nav-row", "nav-row--topic", topicOpen && !currentSubtopicId && "is-active"]}>
+                  <button type="button" class="nav-chevron" aria-label={`Toggle ${topic.title}`} aria-expanded={topicOpen ? "true" : "false"}>
+                    <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3.5 4.5 4.5L6 12.5" /></svg>
+                  </button>
+                  <a href={`/${category.slug}/${topic.slug}/`}>{topic.title}</a>
+                </div>
+                <div class="nav-children" hidden={!topicOpen}>
+                  {topic.subtopics.map((subtopic) => (
+                    <a
+                      class:list={["nav-row", "nav-row--subtopic", subtopic.id === currentSubtopicId && "is-active"]}
+                      href={`/${category.slug}/${topic.slug}/${subtopic.slug}/`}
+                    >
+                      {subtopic.title}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  })}
+</nav>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>(".nav-chevron").forEach((button) => {
+    button.addEventListener("click", () => {
+      const group = button.closest<HTMLElement>("[data-nav-group]");
+      const children = group?.querySelector<HTMLElement>(":scope > .nav-children");
+      if (!group || !children) return;
+      const open = !group.classList.contains("is-open");
+      group.classList.toggle("is-open", open);
+      children.hidden = !open;
+      button.setAttribute("aria-expanded", String(open));
+    });
+  });
+</script>
