@@ -49,28 +49,28 @@ function mediaEmbed(url?: string) {
     <h2>Our Products</h2>
     <div class="feature-grid">
       {[
-        ["◫", "Inquiries", "Collect and verify information with custom flows", "/inquiries"],
-        ["✓", "Verifications", "Choose and combine verification types: government ID, selfie, database, and more", "/verifications"],
-        ["◎", "Accounts", "Represent and consolidate data about individual end users", "/accounts"],
-        ["⇄", "Transactions", "Model any interaction your customers take inside Persona", "/transactions"],
-        ["▤", "Reports", "Enrich identity profiles with a range of authoritative data sources", "/reports"],
-        ["▣", "Cases", "Build and customize your identity review process", "/cases"],
-        ["⌘", "Workflows", "Automate your identity processes", "/workflows"],
-        ["⌬", "Graph", "Visualize and block fraud rings", "/graph"],
-        ["◇", "Marketplace", "Integrate Persona with other third-party apps", "/marketplace-and-3rd-party-integrations"],
+        ["id-front", "Inquiries", "Collect and verify information with custom flows", "/inquiries"],
+        ["circle-check", "Verifications", "Choose and combine verification types: government ID, selfie, database, and more", "/verifications"],
+        ["users-check", "Accounts", "Represent and consolidate data about individual end users", "/accounts"],
+        ["merge", "Transactions", "Model any interaction your customers take inside Persona", "/transactions"],
+        ["document", "Reports", "Enrich identity profiles with a range of authoritative data sources", "/reports"],
+        ["briefcase", "Cases", "Build and customize your identity review process", "/cases"],
+        ["workflows", "Workflows", "Automate your identity processes", "/workflows"],
+        ["graph", "Graph", "Visualize and block fraud rings", "/graph"],
+        ["id-front", "Marketplace", "Integrate Persona with other third-party apps", "/integrations"],
       ].map(([icon, title, copy, href]) => (
-        <a class="feature-card" href={href}><i>{icon}</i><span><strong>{title}</strong><small>{copy}</small></span></a>
+        <a class="feature-card" href={href}><i><svg viewBox="0 0 24 24" aria-hidden="true"><use href={`/persona-icons.svg#${icon}`}></use></svg></i><span><strong>{title}</strong><small>{copy}</small></span></a>
       ))}
     </div>
     <h2>More Resources</h2>
     <div class="feature-grid">
-      <a class="feature-card" href="https://academy.withpersona.com"><i>▻</i><span><strong>Persona Academy</strong><small>Learn the basics of identity and Persona through our courses</small></span></a>
-      <a class="feature-card" href="/community/#podcasts"><i>▶</i><span><strong>Personally Podcasts</strong><small>A podcast series spotlighting founders who use Persona</small></span></a>
-      <a class="feature-card" href="/community/#events"><i>♙</i><span><strong>Events</strong><small>Workshops, online events, and local meetups hosted by Persona</small></span></a>
+      <a class="feature-card" href="/academy/"><i><svg viewBox="0 0 24 24" aria-hidden="true"><use href="/persona-icons.svg#monitor"></use></svg></i><span><strong>Persona Academy</strong><small>Learn the basics of identity and Persona through our courses</small></span></a>
+      <a class="feature-card" href="/community/#podcasts"><i><svg viewBox="0 0 24 24" aria-hidden="true"><use href="/persona-icons.svg#play"></use></svg></i><span><strong>Personally Podcasts</strong><small>A podcast series spotlighting founders who use Persona</small></span></a>
+      <a class="feature-card" href="/community/#events"><i><svg viewBox="0 0 24 24" aria-hidden="true"><use href="/persona-icons.svg#users"></use></svg></i><span><strong>Events</strong><small>Workshops, online events, and local meetups hosted by Persona</small></span></a>
     </div>
     <h2>Trying to complete your verification?</h2>
     <div class="feature-grid">
-      <a class="feature-card" href="/for-end-users"><i>♙</i><span><strong>For end users</strong><small>Get help completing your Persona identity verification</small></span></a>
+      <a class="feature-card" href="/for-end-users/"><i><svg viewBox="0 0 24 24" aria-hidden="true"><use href="/persona-icons.svg#user"></use></svg></i><span><strong>For end users</strong><small>Get help completing your Persona identity verification</small></span></a>
       <a class="feature-card" href="/end-users/linkedin/get-verified"><img src="/linkedin.svg" alt="LinkedIn" /><span><strong>For LinkedIn users</strong><small>Resources for LinkedIn users verifying with Persona</small></span></a>
       <a class="feature-card" href="/articles/7F6BaF9h8Fxf0XWkwQscXN"><img src="/reddit.png" alt="Reddit" /><span><strong>For Reddit users</strong><small>Resources for Reddit users verifying with Persona</small></span></a>
     </div>
@@ -100,12 +100,17 @@ function mediaEmbed(url?: string) {
   return <article class="surface hierarchy-page"><h1>{item.title}</h1><p class="lead">{item.description}</p>{item.topics?.map((topicItem: any) => <section><h2>{topicItem.title}</h2>{topicItem.subtopics?.map((sub: any) => <div><h3>{sub.title}</h3><p>{sub.description}</p><div class="content-grid compact">{sub.articles?.map((entry: any, index: number) => <a class="content-card" href={articleLink(entry)}><img src={cardCovers[index % 5]} alt="" /><strong>{entry.title}</strong></a>) ?? <p>No articles for this topic yet.</p>}</div></div>)}</section>)}</article>;
 })()}
 
-{(kind === "topic" || kind === "subtopic") && (() => {
-  const item = kind === "topic" ? context.contentfulTopic : context.contentfulSubtopic;
+{kind === "topic" && (() => {
+  const item = context.contentfulTopic;
+  const parentCategory = context.contentfulCategory;
+  return <article class="surface hierarchy-page topic-page"><Breadcrumbs entries={[{ title: parentCategory.title, url: `/${parentCategory.slug}` }, { title: item.title, url: page.path }]} /><h1>{item.title}</h1>{item.subtopics?.map((sub: any) => <section><h2>{sub.title}</h2><p>{sub.description}</p><div class="content-grid compact">{sub.articles?.map((entry: any, index: number) => <a class="content-card" href={articleLink(entry)}><img src={cardCovers[index % 5]} alt="" /><strong>{entry.title}</strong></a>) ?? <p>No articles for this topic yet.</p>}</div></section>)}</article>;
+})()}
+
+{kind === "subtopic" && (() => {
+  const item = context.contentfulSubtopic;
   const parentCategory = context.contentfulCategory;
   const parentTopic = context.contentfulTopic;
-  const groups = kind === "topic" ? item.subtopics : [item];
-  return <article class="surface hierarchy-page"><Breadcrumbs entries={[{ title: parentCategory.title, url: `/${parentCategory.slug}` }, ...(kind === "subtopic" ? [{ title: parentTopic.title, url: `/${parentCategory.slug}/${parentTopic.slug}` }] : []), { title: item.title, url: page.path }]} /><h1>{item.title}</h1>{groups?.map((sub: any) => <section>{kind === "topic" && <h2>{sub.title}</h2>}<p>{sub.description}</p><div class="content-grid compact">{sub.articles?.map((entry: any, index: number) => <a class="content-card" href={articleLink(entry)}><img src={cardCovers[index % 5]} alt="" /><strong>{entry.title}</strong></a>) ?? <p>No articles for this topic yet.</p>}</div></section>)}</article>;
+  return <article class="surface hierarchy-page subtopic-page"><Breadcrumbs entries={[{ title: parentCategory.title, url: `/${parentCategory.slug}` }, { title: parentTopic.title, url: `/${parentCategory.slug}/${parentTopic.slug}` }, { title: item.title, url: page.path }]} /><h1>{item.title}</h1><p>{item.description}</p><div class="content-grid compact">{item.articles?.map((entry: any, index: number) => <a class="content-card" href={articleLink(entry)}><img src={cardCovers[index % 5]} alt="" /><strong>{entry.title}</strong></a>) ?? <p>No articles for this topic yet.</p>}</div></article>;
 })()}
 
 {kind === "article" && (

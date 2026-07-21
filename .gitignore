@@ -143,6 +143,7 @@ out
 .nuxt
 dist
 src/data/pages.json
+src/data/navigation.json
 public/search-index.json
 
 # Gatsby files

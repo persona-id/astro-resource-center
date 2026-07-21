@@ -1,12 +1,16 @@
 ---
 import "../styles/global.css";
 import personaLogo from "../assets/persona-logo.svg";
+import navigation from "../data/navigation.json";
+import NavigationTree from "../components/NavigationTree.astro";
+import type { ResourcePage } from "../types/resource-center";
 
 interface Props {
   title?: string;
   description?: string;
   path?: string;
   hideChrome?: boolean;
+  page?: ResourcePage;
 }
 
 const {
@@ -14,9 +18,17 @@ const {
   description = "Resources, articles, checklists, key concepts, and tutorials to help you learn, explore, and integrate Persona.",
   path = "/",
   hideChrome = false,
+  page,
 } = Astro.props;
 const fullTitle = title === "Persona Help Center" ? title : `${title} | Persona Help Center`;
-const dashboardUrl = import.meta.env.PUBLIC_PERSONA_HOSTNAME ?? import.meta.env.PERSONA_HOSTNAME ?? "https://withpersona.com";
+const dashboardUrl = import.meta.env.PUBLIC_PERSONA_HOSTNAME ?? import.meta.env.PERSONA_HOSTNAME ?? "https://app.withpersona.com";
+const article = page?.context.contentfulHelpCenterArticle;
+const articleSubtopic = article?.subtopic?.[0];
+const articleTopic = articleSubtopic?.topic?.[0];
+const articleCategory = articleTopic?.category?.[0];
+const currentCategory = page?.context.contentfulCategory ?? articleCategory;
+const currentTopic = page?.context.contentfulTopic ?? articleTopic;
+const currentSubtopic = page?.context.contentfulSubtopic ?? articleSubtopic;
 ---
 
 <!doctype html>
@@ -47,12 +59,14 @@ const dashboardUrl = import.meta.env.PUBLIC_PERSONA_HOSTNAME ?? import.meta.env.
           <a href="https://academy.withpersona.com" target="_blank">Academy</a>
           <a href="https://docs.withpersona.com/docs" target="_blank">Developer Docs</a>
           <a href="https://status.withpersona.com/" target="_blank">System Status</a>
-          <button class="icon-button" id="open-search" aria-label="Search">⌕</button>
+          <button class="icon-button" id="open-search" aria-label="Search">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.75" /><path d="m10.5 10.5 3 3" /></svg>
+          </button>
         </nav>
         <div class="top-actions">
           <a class="button" href={`${dashboardUrl}/dashboard`} target="_blank">Go to Dashboard</a>
-          <button class="icon-button mobile-search" id="open-search-mobile" aria-label="Search">⌕</button>
-          <button class="icon-button mobile-menu" id="open-menu" aria-label="Open menu">☰</button>
+          <button class="icon-button mobile-search" id="open-search-mobile" aria-label="Search"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.75" /><path d="m10.5 10.5 3 3" /></svg></button>
+          <button class="icon-button mobile-menu" id="open-menu" aria-label="Open menu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18" /></svg></button>
         </div>
       </header>
     )}
@@ -61,21 +75,19 @@ const dashboardUrl = import.meta.env.PUBLIC_PERSONA_HOSTNAME ?? import.meta.env.
         <aside class="sidebar" id="sidebar">
           <section class="sidebar-card">
             <h2>Articles</h2>
-            <a class={path === "/articles/" ? "active" : ""} href="/articles">Featured articles</a>
-            <a href="/getting-started">Getting started</a>
-            <a href="/inquiries">Inquiries</a>
-            <a href="/verifications">Verifications</a>
-            <a href="/accounts">Accounts</a>
-            <a href="/transactions">Transactions</a>
-            <a href="/reports">Reports</a>
-            <a href="/cases">Cases</a>
-            <a href="/workflows">Workflows</a>
-            <a href="/graph">Graph</a>
+            <NavigationTree
+              categories={navigation}
+              currentCategoryId={currentCategory?.id}
+              currentTopicId={currentTopic?.id}
+              currentSubtopicId={currentSubtopic?.id}
+            />
           </section>
           <section class="sidebar-card">
             <h2>Get help now</h2>
-            <a href="https://app.withpersona.com/dashboard/support" target="_blank">Contact support ↗</a>
-            <a href="https://docs.withpersona.com" target="_blank">Developer documentation ↗</a>
+            <a class="support-link" href={`${dashboardUrl}/dashboard/contact-us`} target="_blank">
+              <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.25 3.25h11.5v8H6.5L3 13.75v-2.5h-.75z" /></svg>
+              <span>Submit a request</span>
+            </a>
           </section>
         </aside>
       )}

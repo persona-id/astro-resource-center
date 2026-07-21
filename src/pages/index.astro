@@ -6,4 +6,4 @@ import type { ResourcePage } from "../types/resource-center";
 
 const page = (pages as ResourcePage[]).find((entry) => entry.path === "/")!;
 ---
-<ResourceLayout path="/"><PageRenderer page={page} /></ResourceLayout>
+<ResourceLayout path="/" page={page}><PageRenderer page={page} /></ResourceLayout>

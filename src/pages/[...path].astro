@@ -27,4 +27,4 @@ const title = entity?.title ?? (page.kind === "articles" ? "Articles" : page.kin
 const description = entity?.description?.childMarkdownRemark?.rawMarkdownBody ?? entity?.seoDescription?.childMarkdownRemark?.rawMarkdownBody ?? (typeof entity?.description === "string" ? entity.description : undefined);
 const hideChrome = page.kind === "endUserArticle";
 ---
-<ResourceLayout title={title} description={description} path={page.path} hideChrome={hideChrome}><PageRenderer page={page} /></ResourceLayout>
+<ResourceLayout title={title} description={description} path={page.path} hideChrome={hideChrome} page={page}><PageRenderer page={page} /></ResourceLayout>

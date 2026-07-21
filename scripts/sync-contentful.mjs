@@ -294,6 +294,21 @@ const allCategoriesList = (entriesByType.get("categoryList") ?? []).find(
   (entry) => field(entry, "internalName") === "All Categories",
 );
 const allCategories = linkedEntries(field(allCategoriesList, "categories"));
+const navigation = allCategories.map((categoryEntry) => ({
+  ...idFields(categoryEntry),
+  title: field(categoryEntry, "title"),
+  slug: field(categoryEntry, "slug"),
+  topics: linkedEntries(field(categoryEntry, "topics")).map((topicEntry) => ({
+    ...idFields(topicEntry),
+    title: field(topicEntry, "title"),
+    slug: field(topicEntry, "slug"),
+    subtopics: linkedEntries(field(topicEntry, "subtopics")).map((subtopicEntry) => ({
+      ...idFields(subtopicEntry),
+      title: field(subtopicEntry, "title"),
+      slug: field(subtopicEntry, "slug"),
+    })),
+  })),
+}));
 
 for (const categoryEntry of allCategories) {
   const categoryData = category(categoryEntry, true);
@@ -371,6 +386,7 @@ const searchIndex = uniquePages
 
 await mkdir(path.join(projectRoot, "src/data"), { recursive: true });
 await writeFile(path.join(projectRoot, "src/data/pages.json"), JSON.stringify(uniquePages));
+await writeFile(path.join(projectRoot, "src/data/navigation.json"), JSON.stringify(navigation));
 await writeFile(path.join(projectRoot, "public/search-index.json"), JSON.stringify(searchIndex));
 
 console.log(`Synced ${entries.length} Contentful entries into ${uniquePages.length} Astro routes.`);
