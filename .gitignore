@@ -142,6 +142,8 @@ out
 # Nuxt.js build / generate output
 .nuxt
 dist
+src/data/pages.json
+public/search-index.json
 
 # Gatsby files
 .cache/

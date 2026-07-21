@@ -1,0 +1,186 @@
+---
+import Breadcrumbs from "./Breadcrumbs.astro";
+import type { ResourcePage } from "../types/resource-center";
+
+interface Props { page: ResourcePage }
+const { page } = Astro.props;
+const { context, data, kind } = page;
+
+const cardCovers = Array.from({ length: 10 }, (_, index) => `/card-cover-${index + 1}.svg`);
+const entity =
+  context.contentfulHelpCenterArticle ??
+  context.contentfulEnterpriseEndUserArticle ??
+  context.contentfulAcademyLesson ??
+  context.contentfulPodcastEpisode ??
+  context.contentfulCommunityEvent ??
+  context.contentfulCategory ??
+  context.contentfulTopic ??
+  context.contentfulSubtopic;
+
+const description =
+  entity?.description?.childMarkdownRemark?.rawMarkdownBody ??
+  entity?.seoDescription?.childMarkdownRemark?.rawMarkdownBody ??
+  (typeof entity?.description === "string" ? entity.description : "");
+
+const article = context.contentfulHelpCenterArticle;
+const subtopic = article?.subtopic?.[0];
+const topic = subtopic?.topic?.[0];
+const category = topic?.category?.[0];
+const endUserArticle = context.contentfulEnterpriseEndUserArticle;
+const course = context.contentfulAcademyCourse;
+const lesson = context.contentfulAcademyLesson;
+
+function articleLink(item: any) {
+  return `/articles/${item.contentful_id}`;
+}
+
+function mediaEmbed(url?: string) {
+  if (!url) return "";
+  if (url.includes("youtu.be/")) return `https://www.youtube.com/embed/${url.split("youtu.be/")[1].split(/[?&]/)[0]}`;
+  if (url.includes("youtube.com/watch")) return `https://www.youtube.com/embed/${new URL(url).searchParams.get("v")}`;
+  if (url.includes("vimeo.com/")) return `https://player.vimeo.com/video/${url.split("vimeo.com/")[1].split(/[?&]/)[0]}`;
+  return url;
+}
+---
+
+{kind === "home" && (
+  <article class="surface home-page">
+    <h1>Persona Help Center</h1>
+    <h2>Our Products</h2>
+    <div class="feature-grid">
+      {[
+        ["◫", "Inquiries", "Collect and verify information with custom flows", "/inquiries"],
+        ["✓", "Verifications", "Choose and combine verification types: government ID, selfie, database, and more", "/verifications"],
+        ["◎", "Accounts", "Represent and consolidate data about individual end users", "/accounts"],
+        ["⇄", "Transactions", "Model any interaction your customers take inside Persona", "/transactions"],
+        ["▤", "Reports", "Enrich identity profiles with a range of authoritative data sources", "/reports"],
+        ["▣", "Cases", "Build and customize your identity review process", "/cases"],
+        ["⌘", "Workflows", "Automate your identity processes", "/workflows"],
+        ["⌬", "Graph", "Visualize and block fraud rings", "/graph"],
+        ["◇", "Marketplace", "Integrate Persona with other third-party apps", "/marketplace-and-3rd-party-integrations"],
+      ].map(([icon, title, copy, href]) => (
+        <a class="feature-card" href={href}><i>{icon}</i><span><strong>{title}</strong><small>{copy}</small></span></a>
+      ))}
+    </div>
+    <h2>More Resources</h2>
+    <div class="feature-grid">
+      <a class="feature-card" href="https://academy.withpersona.com"><i>▻</i><span><strong>Persona Academy</strong><small>Learn the basics of identity and Persona through our courses</small></span></a>
+      <a class="feature-card" href="/community/#podcasts"><i>▶</i><span><strong>Personally Podcasts</strong><small>A podcast series spotlighting founders who use Persona</small></span></a>
+      <a class="feature-card" href="/community/#events"><i>♙</i><span><strong>Events</strong><small>Workshops, online events, and local meetups hosted by Persona</small></span></a>
+    </div>
+    <h2>Trying to complete your verification?</h2>
+    <div class="feature-grid">
+      <a class="feature-card" href="/for-end-users"><i>♙</i><span><strong>For end users</strong><small>Get help completing your Persona identity verification</small></span></a>
+      <a class="feature-card" href="/end-users/linkedin/get-verified"><img src="/linkedin.svg" alt="LinkedIn" /><span><strong>For LinkedIn users</strong><small>Resources for LinkedIn users verifying with Persona</small></span></a>
+      <a class="feature-card" href="/articles/7F6BaF9h8Fxf0XWkwQscXN"><img src="/reddit.png" alt="Reddit" /><span><strong>For Reddit users</strong><small>Resources for Reddit users verifying with Persona</small></span></a>
+    </div>
+  </article>
+)}
+
+{kind === "articles" && (
+  <article class="surface">
+    <h1>Persona Help Center Articles</h1>
+    <h2>Featured articles</h2>
+    <div class="content-grid">
+      {data.featuredArticles?.nodes?.map((item: any, index: number) => (
+        <a class="content-card" href={articleLink(item)}><img src={cardCovers[index % 10]} alt="" /><strong>{item.title}</strong></a>
+      ))}
+    </div>
+    <h2>Browse by category</h2>
+    <div class="content-grid">
+      {data.featuredCategories?.nodes?.map((item: any, index: number) => (
+        <a class="content-card" href={`/${item.slug}`}><img src={cardCovers[index % 10]} alt="" /><strong>{item.title}</strong><span>{item.description}</span></a>
+      ))}
+    </div>
+  </article>
+)}
+
+{kind === "category" && (() => {
+  const item = context.contentfulCategory;
+  return <article class="surface hierarchy-page"><h1>{item.title}</h1><p class="lead">{item.description}</p>{item.topics?.map((topicItem: any) => <section><h2>{topicItem.title}</h2>{topicItem.subtopics?.map((sub: any) => <div><h3>{sub.title}</h3><p>{sub.description}</p><div class="content-grid compact">{sub.articles?.map((entry: any, index: number) => <a class="content-card" href={articleLink(entry)}><img src={cardCovers[index % 5]} alt="" /><strong>{entry.title}</strong></a>) ?? <p>No articles for this topic yet.</p>}</div></div>)}</section>)}</article>;
+})()}
+
+{(kind === "topic" || kind === "subtopic") && (() => {
+  const item = kind === "topic" ? context.contentfulTopic : context.contentfulSubtopic;
+  const parentCategory = context.contentfulCategory;
+  const parentTopic = context.contentfulTopic;
+  const groups = kind === "topic" ? item.subtopics : [item];
+  return <article class="surface hierarchy-page"><Breadcrumbs entries={[{ title: parentCategory.title, url: `/${parentCategory.slug}` }, ...(kind === "subtopic" ? [{ title: parentTopic.title, url: `/${parentCategory.slug}/${parentTopic.slug}` }] : []), { title: item.title, url: page.path }]} /><h1>{item.title}</h1>{groups?.map((sub: any) => <section>{kind === "topic" && <h2>{sub.title}</h2>}<p>{sub.description}</p><div class="content-grid compact">{sub.articles?.map((entry: any, index: number) => <a class="content-card" href={articleLink(entry)}><img src={cardCovers[index % 5]} alt="" /><strong>{entry.title}</strong></a>) ?? <p>No articles for this topic yet.</p>}</div></section>)}</article>;
+})()}
+
+{kind === "article" && (
+  <div class="article-stack">
+    <article class="surface article-page" data-auth-required={article.requiresAuthenticationToView ? "true" : undefined}>
+      {category && topic && subtopic && <Breadcrumbs entries={[{ title: category.title, url: `/${category.slug}` }, { title: topic.title, url: `/${category.slug}/${topic.slug}` }, { title: subtopic.title, url: `/${category.slug}/${topic.slug}/${subtopic.slug}` }]} />}
+      <h1>{article.title}</h1>
+      {article.requiresAuthenticationToView && <div class="auth-message"><p>You must be logged into the Persona Dashboard to view this page. Once you’ve logged in, refresh this page.</p><a class="button" href="https://withpersona.com/dashboard">Login to Dashboard</a></div>}
+      <div class="rich-content" set:html={article.article?.childMarkdownRemark?.html ?? ""}></div>
+      {article.relatedArticles?.length > 0 && <section class="related"><h2>Related articles</h2>{article.relatedArticles.map((item: any) => <a href={articleLink(item)}>{item.title}</a>)}</section>}
+    </article>
+    {subtopic?.containsSequencedArticles && (() => {
+      const entries = subtopic.articles ?? [];
+      const index = entries.findIndex((item: any) => item.id === article.id);
+      const previous = entries[index - 1];
+      const next = entries[index + 1];
+      return (previous || next) && <nav class="sequence">{previous && <a href={articleLink(previous)}><small>← Previous article</small><strong>{previous.title}</strong></a>}{next && <a href={articleLink(next)}><small>Next article →</small><strong>{next.title}</strong></a>}</nav>;
+    })()}
+  </div>
+)}
+
+{kind === "academy" && (() => {
+  const courses = data.allContentfulAcademyCourseList?.nodes?.[0]?.academyCourses ?? [];
+  return <article class="surface"><h1>Persona Academy</h1><p class="lead">Learn the basics of identity and Persona through our courses.</p><div class="course-grid">{courses.map((item: any) => <a class="course-card" href={`/academy/${item.slug}`}><img src={item.icon?.url} alt={item.icon?.title ?? ""} /><h2>{item.title}</h2><p>{item.description?.childMarkdownRemark?.rawMarkdownBody}</p><small>{item.lessons?.length ?? 0} lessons</small></a>)}</div><hr /><h2>Course certifications</h2><p>Complete a Persona Academy course, request an assessment, and earn a certification you can share professionally.</p><h2>Persona Experts Program</h2><p>Consultants, agencies, and developers with compliance, product, or development experience can apply to demonstrate their expertise with Persona.</p></article>;
+})()}
+
+{kind === "academyLesson" && (
+  <article class="surface lesson-page">
+    <Breadcrumbs entries={[{ title: "Academy", url: "/academy" }, { title: course.title, url: `/academy/${course.slug}` }]} />
+    <div class="lesson-layout"><div><h1>{lesson.title}</h1>{lesson.videoLink && <div class="video"><iframe src={mediaEmbed(lesson.videoLink)} title={lesson.title} allowfullscreen></iframe></div>}<div class="rich-content" set:html={lesson.content?.childMarkdownRemark?.html ?? ""}></div></div><aside class="course-outline"><h2>Your course progress</h2>{course.lessons?.map((item: any, index: number) => <a class={item.id === lesson.id ? "active" : ""} href={`/academy/${course.slug}/lesson-${index + 1}`}><span>Lesson {index + 1}</span><strong>{item.title}</strong><small>{item.estimatedMinutesToComplete} min</small></a>)}</aside></div>
+  </article>
+)}
+
+{kind === "community" && (() => {
+  const series = data.podcastSeries?.nodes ?? [];
+  const events = data.communityEvents?.nodes ?? [];
+  return <article class="surface"><h1>Persona Community</h1><section id="podcasts"><h2>Personally Podcasts</h2>{series.map((item: any) => <div><h3>{item.title}</h3><p>{item.description}</p><div class="media-grid">{item.podcastEpisodes?.map((episode: any) => <a class="media-card" href={`/podcasts/${episode.contentful_id}`}><img src={episode.thumbnail?.url} alt={episode.thumbnail?.title ?? ""} /><strong>{episode.title}</strong></a>)}</div></div>)}</section><section id="events"><h2>Events</h2><div class="media-grid">{events.map((event: any) => <a class="media-card" href={`/events/${event.contentful_id}`}><img src={event.thumbnail?.url} alt={event.thumbnail?.title ?? ""} /><strong>{event.title}</strong><small>{event.date}</small></a>)}</div></section></article>;
+})()}
+
+{(kind === "podcast" || kind === "event") && (
+  <article class="surface media-page">
+    <Breadcrumbs entries={[{ title: "Community", url: "/community" }, { title: entity.title, url: page.path }]} />
+    <h1>{entity.title}</h1>
+    {(entity.videoLink || entity.episodeLink) && <div class="video"><iframe src={mediaEmbed(entity.videoLink ?? entity.episodeLink)} title={entity.title} allowfullscreen></iframe></div>}
+    {entity.eventImage && <img class="hero-image" src={entity.eventImage.url} alt={entity.eventImage.title ?? ""} />}
+    <div class="rich-content" set:html={entity.description?.childMarkdownRemark?.html ?? ""}></div>
+  </article>
+)}
+
+{kind === "endUserArticle" && (
+  <article class="surface article-page end-user-page">
+    {endUserArticle.coverImage && <img class="cover-image" src={endUserArticle.coverImage.url} alt={endUserArticle.coverImage.title ?? ""} />}
+    <h1>{endUserArticle.title}</h1>
+    <p class="lead">{description}</p>
+    <div class="rich-content" set:html={endUserArticle.article?.childMarkdownRemark?.html ?? ""}></div>
+  </article>
+)}
+
+{kind === "search" && <article class="surface"><h1>Search results</h1><p>Use the search button in the navigation or press <kbd>⌘ K</kbd>.</p></article>}
+{kind === "notFound" && <article class="surface not-found"><h1>Page not found</h1><p>We couldn’t find the page you requested.</p><a class="button" href="/">Return home</a></article>}
+
+<script define:vars={{ dashboardHost: import.meta.env.PUBLIC_PERSONA_HOSTNAME ?? import.meta.env.PERSONA_HOSTNAME ?? "https://withpersona.com" }}>
+  document.querySelectorAll('[data-auth-required="true"]').forEach(async (element) => {
+    const body = element.querySelector('.rich-content');
+    const message = element.querySelector('.auth-message');
+    if (body) body.setAttribute('hidden', '');
+    const token = document.cookie.split('; ').find((value) => value.startsWith('dashboard_auth_state='))?.split('=')[1];
+    if (!token) return;
+    try {
+      const response = await fetch(`${dashboardHost}/api/internal/resource_center/dashboard_authentication_state?token=${encodeURIComponent(token)}`, { method: 'POST' });
+      const result = await response.json();
+      if (result.authenticated) {
+        body?.removeAttribute('hidden');
+        message?.setAttribute('hidden', '');
+      }
+    } catch {}
+  });
+</script>
