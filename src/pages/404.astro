@@ -3,7 +3,7 @@ import pages from "../data/pages.json";
 import PageRenderer from "../components/PageRenderer.astro";
 import ResourceLayout from "../layouts/ResourceLayout.astro";
 import type { ResourcePage } from "../types/resource-center";
-
-const page = (pages as ResourcePage[]).find((entry) => entry.path === "/")!;
+const page = (pages as ResourcePage[]).find((entry) => entry.kind === "notFound")!;
+Astro.response.status = 404;
 ---
-<ResourceLayout path="/"><PageRenderer page={page} /></ResourceLayout>
+<ResourceLayout title="Page not found" path="/404/"><PageRenderer page={page} /></ResourceLayout>
